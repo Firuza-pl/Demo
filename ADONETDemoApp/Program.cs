@@ -1,7 +1,22 @@
+using Demo.Infrastructure.Database;
+using Demo.Infrastructure.Modules;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                     .AddEnvironmentVariables();
+
+builder.Services.AddSingleton(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var connectionString = configuration.GetConnectionString("DefaultConnection");
+    return new AdoNetDbContext(connectionString);
+});
+
+//register services
+LogicModule.Load(builder.Services);
 
 var app = builder.Build();
 
