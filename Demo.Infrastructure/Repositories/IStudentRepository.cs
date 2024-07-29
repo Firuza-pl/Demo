@@ -6,5 +6,5 @@ public interface IStudentRepository
     public Student GetById(int id);
     public void AddStudent(Student student);
     void UpdateStudent(Student student);
-    void DeleteStudent(int id);
+    Task<bool> DeleteStudent(int id);
 }

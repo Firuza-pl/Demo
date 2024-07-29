@@ -34,13 +34,13 @@ public class StudentRepository : IStudentRepository
         return students;
     }
 
-    public Student GetById(int id)
+    public Student GetById(int StudentId)
     {
         Student student = null;
 
         using var conn = _context.GetConnection();
-        using var command = new SqlCommand("SELECT * FROM Students WHERE StudentId = @id ", conn);
-        command.Parameters.AddWithValue("@StudentId", id);
+        using var command = new SqlCommand("SELECT * FROM Students WHERE StudentId = @StudentId ", conn);
+        command.Parameters.AddWithValue("@StudentId", StudentId); //prm name must match column name
         conn.Open();
 
         using var dataReader = command.ExecuteReader();
@@ -57,7 +57,7 @@ public class StudentRepository : IStudentRepository
     public void AddStudent(Student student)
     {
         using var conn = _context.GetConnection();
-        using var command = new SqlCommand("INSERT INTO Students (StudentId, FirstName, LastName) VALUES (@StudentId, @FirstName, @LastName", conn);
+        using var command = new SqlCommand("INSERT INTO Students (FirstName, LastName) VALUES (@FirstName, @LastName)", conn);
         command.Parameters.AddWithValue("@FirstName", student.FirstName);
         command.Parameters.AddWithValue("@LastName", student.LastName);
 
@@ -78,15 +78,55 @@ public class StudentRepository : IStudentRepository
         conn.Close();
     }
 
-    public void DeleteStudent(int id) {
+    public async Task<bool> DeleteStudent(int StudentId)
+    {
+        try
+        {
+            using var conn = _context.GetConnection();
+            conn.Open(); //before started transaction
 
-        using var conn = _context.GetConnection();
-        using var command = new SqlCommand("DELETE FROM Students WHERE StudentId = @StudentId", conn);
-        command.Parameters.AddWithValue("@StudentId", id);
+            using var transaction = conn.BeginTransaction();
 
-        conn.Open();
-        command.ExecuteNonQuery();
-        conn.Close();
+            try
+            {
+
+                using var deleteEnrollmentsCommand = new SqlCommand("DELETE FROM Enrollments WHERE StudentId = @StudentId", conn, transaction);
+                deleteEnrollmentsCommand.Parameters.AddWithValue("@StudentId", StudentId);
+                deleteEnrollmentsCommand.ExecuteNonQuery();
+
+
+                using var deleteStudentCommand = new SqlCommand("DELETE FROM Students WHERE StudentId = @StudentId", conn, transaction);
+                deleteStudentCommand.Parameters.AddWithValue("@StudentId", StudentId);
+                int rowsAffected = deleteStudentCommand.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    transaction.Commit(); // if all commands execute successfully   
+                    return true; //deleted
+                }
+                else
+                {
+                    transaction.Rollback();
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                conn.Close();
+            }
+
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
     }
 
 

@@ -39,8 +39,8 @@ internal class StudentService : IStudentService
         }
     }
 
-    public void DeleteStudent(int studentId)
+    public async Task<bool> DeleteStudent(int studentId)
     {
-        _studentRepository.DeleteStudent(studentId);
+       return await _studentRepository.DeleteStudent(studentId);
     }
 }

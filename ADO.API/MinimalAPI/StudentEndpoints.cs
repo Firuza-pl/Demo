@@ -70,17 +70,16 @@ public static class StudentEndpoints
 
 
         //Create
-        app.MapPost("/api/createStudent/", async (IStudentService studentService, StudentCreatedDTO createdDTO) =>
+        app.MapPost("/api/createStudent/", async (IStudentService studentService, StudentCreatedDTO createdDTO, IValidator<StudentCreatedDTO> validator) =>
         {
             ApiResponse response = new();
 
-            // Validate the input
-            //var resultValidation = await validator.ValidateAsync(createdDTO);
-            //if (!resultValidation.IsValid)
-            //{
-            //    response.ErrorMessages.AddRange(resultValidation.Errors.Select(x => x.ToString()));
-            //    return Results.BadRequest(response);
-            //}
+            var resultValidation = await validator.ValidateAsync(createdDTO);
+            if (!resultValidation.IsValid)
+            {
+                response.ErrorMessages.AddRange(resultValidation.Errors.Select(x => x.ToString()));
+                return Results.BadRequest(response);
+            }
 
             // Add student via the service
             studentService.AddStudent(createdDTO);
@@ -99,19 +98,18 @@ public static class StudentEndpoints
 
 
         //update
-        app.MapPut("/api/updateStudent/", async (IStudentService studentService, ILogger<Program> logger, [FromBody] StudentUpdateDTO updateDTO) =>
+        app.MapPut("/api/updateStudent/", async (IStudentService studentService, ILogger<Program> logger, [FromBody] StudentUpdateDTO updateDTO, IValidator<StudentUpdateDTO> validator) =>
         {
             logger.Log(LogLevel.Information, "Updating student");
 
             ApiResponse response = new();
 
-            //if(string.IsNullOrEmpty(createdDTO))
-            //var resultValidation = await validator.ValidateAsync(updateDTO);
-            //if (!resultValidation.IsValid)
-            //{
-            //    response.ErrorMessages.AddRange(resultValidation.Errors.Select(x => x.ToString()));
-            //    return Results.BadRequest(response);
-            //}
+            var resultValidation = await validator.ValidateAsync(updateDTO);
+            if (!resultValidation.IsValid)
+            {
+                response.ErrorMessages.AddRange(resultValidation.Errors.Select(x => x.ToString()));
+                return Results.BadRequest(response);
+            }
 
             studentService.UpdateStudent(updateDTO.StudentId, updateDTO);
 
@@ -132,29 +130,42 @@ public static class StudentEndpoints
 
             ApiResponse response = new();
 
-            if (id is { })
+            try
             {
-                studentService.DeleteStudent(id);
+                bool isDeleted = await studentService.DeleteStudent(id);
 
-                response.Result = id;  //"Student updated successfully";
-                response.isActive = true;
-                response.StatusCode = HttpStatusCode.OK;
+                if (isDeleted)
+                {
+                    response.Result = id;
+                    response.isActive = true;
+                    response.StatusCode = HttpStatusCode.OK;
 
-                return Results.Ok(response);
+                    return Results.Ok(response);
+                }
+                else
+                {
+                    response.isActive = false;
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.ErrorMessages.Add("No student found to delete");
+
+                    return Results.NotFound(response);
+                }
             }
-            else
+            catch (Exception ex)
             {
+                logger.LogError(ex, "An error occurred while deleting the student");
+
                 response.isActive = false;
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.ErrorMessages.Add("No user found");
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.ErrorMessages.Add("An error occurred while processing your request");
 
-                return Results.BadRequest(response);
+                return Results.StatusCode((int)HttpStatusCode.InternalServerError);
             }
-
-
         }).WithName("DeleteStudent")
-       .Produces<ApiResponse>(200)
-       .Produces(400);
+ .Produces<ApiResponse>(200)
+ .Produces<ApiResponse>(404)
+ .Produces<ApiResponse>(500);
+
 
     }
 

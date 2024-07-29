@@ -7,5 +7,5 @@ public interface IStudentService
     public Student GetStudent(int id);
     public void AddStudent(StudentCreatedDTO studentCreated);
     void UpdateStudent(int studentId, StudentUpdateDTO studentUpdate);
-    void DeleteStudent(int studentId);
+    Task<bool> DeleteStudent(int studentId);
 }
