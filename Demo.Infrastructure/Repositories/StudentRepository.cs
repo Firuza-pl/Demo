@@ -1,6 +1,5 @@
 ﻿using Demo.Domain.AggregatesModel;
 using Demo.Infrastructure.Database;
-using System.Data;
 using System.Data.SqlClient;
 
 namespace Demo.Infrastructure.Repositories;
@@ -12,78 +11,182 @@ public class StudentRepository : IStudentRepository
     {
         _context = context;
     }
-    public IEnumerable<Student> GetAllStudents()
+    public async Task<IEnumerable<Student>> GetAllStudentsAsync()
     {
         var students = new List<Student>();
 
-        using var conn = _context.GetConnection(); //new SqlConnection(conn);
-
-        using var command = new SqlCommand("Select * from Students", conn);  //MUST TO DO: change to stored procedure
-        //cmd.CommandType = CommandType.StoredProcedure;
-        conn.Open();
-
-        using var dataReader = command.ExecuteReader();
-        while (dataReader.Read())
+        using var conn = _context.GetConnection();
+        await conn.OpenAsync();
+        try
         {
-            Student student = new Student();
-            student.AddData(dataReader.GetInt32(0), dataReader.GetString(1), dataReader.GetString(2));
+            using var command = new SqlCommand("Select * from Students", conn);
 
-            students.Add(student);
+            using var dataReader = await command.ExecuteReaderAsync();
+
+            while (await dataReader.ReadAsync()) // if there's at least one row
+            {
+                Student student = new();
+
+                student.AddData(
+                    dataReader.GetInt32(0), // column name 
+                    dataReader.GetString(1),
+                    dataReader.GetString(2)
+                );
+
+                students.Add(student);
+            }
+
+            return students;
         }
-        conn.Close();
-        return students;
-    }
-
-    public Student GetById(int StudentId)
-    {
-        Student student = null;
-
-        using var conn = _context.GetConnection();
-        using var command = new SqlCommand("SELECT * FROM Students WHERE StudentId = @StudentId ", conn);
-        command.Parameters.AddWithValue("@StudentId", StudentId); //prm name must match column name
-        conn.Open();
-
-        using var dataReader = command.ExecuteReader();
-        while (dataReader.Read())
+        catch (Exception ex)
         {
-            student = new Student();
-            student.AddData(dataReader.GetInt32(0), dataReader.GetString(1), dataReader.GetString(2));
+            Console.WriteLine($"Error: {ex.Message}");
+            throw;
         }
-
-        conn.Close();
-        return student;
+        // No need to manually close the connection , it's handled by using statement
     }
-
-    public void AddStudent(Student student)
-    {
-        using var conn = _context.GetConnection();
-        using var command = new SqlCommand("INSERT INTO Students (FirstName, LastName) VALUES (@FirstName, @LastName)", conn);
-        command.Parameters.AddWithValue("@FirstName", student.FirstName);
-        command.Parameters.AddWithValue("@LastName", student.LastName);
-
-        conn.Open();
-        command.ExecuteNonQuery();
-        conn.Close();
-    }
-    public void UpdateStudent(Student student)
-    {
-        using var conn = _context.GetConnection();
-        using var command = new SqlCommand("UPDATE Students SET FirstName = @FirstName, LastName = @LastName WHERE StudentId = @StudentId", conn);
-        command.Parameters.AddWithValue("@StudentId", student.StudentId);
-        command.Parameters.AddWithValue("@FirstName", student.FirstName);
-        command.Parameters.AddWithValue("@LastName", student.LastName);
-
-        conn.Open();
-        command.ExecuteNonQuery();
-        conn.Close();
-    }
-
-    public async Task<bool> DeleteStudent(int StudentId)
+    public async Task<Student> GetByIdAsync(int studentId)
     {
         try
         {
             using var conn = _context.GetConnection();
-            conn.Open(); //before started transaction
+            await conn.OpenAsync();
+
+            // No need for a transaction for read operations
+            using var command = new SqlCommand("SELECT * FROM Students WHERE StudentId = @StudentId", conn);
+            command.Parameters.AddWithValue("@StudentId", studentId);
+
+            using var dataReader = await command.ExecuteReaderAsync();
+
+            Student student = null;
+
+            if (await dataReader.ReadAsync()) // if there's at least one row
+            {
+                student = new Student();
+                student.AddData(
+                    dataReader.GetInt32(0), // column name 
+                    dataReader.GetString(1),
+                    dataReader.GetString(2)
+                );
+            }
+
+            return student;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            throw;
+        }
+        finally
+        {
+            // No need to manually close the connection , it's handled by using statement
+        }
+    }
+    public async Task<int> AddStudentAsync(Student student)
+    {
+        try
+        {
+            using var conn = _context.GetConnection();
+            await conn.OpenAsync();
+
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+
+                using var command = new SqlCommand("INSERT INTO Students (FirstName, LastName) VALUES (@FirstName, @LastName)", conn, transaction);
+                command.Parameters.AddWithValue("@FirstName", student.FirstName);
+                command.Parameters.AddWithValue("@LastName", student.LastName);
+
+                int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                if (rowsAffected > 0)
+                {
+                    await transaction.CommitAsync();
+                    return rowsAffected;
+                }
+                else
+                {
+                    await transaction.RollbackAsync();
+                    return 0;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+
+                Console.WriteLine($"Error: {ex.Message}");
+                throw; //is used to throw exceptions in general, not just ArgumentNullException
+            }
+            finally
+            {
+                conn.Close(); //explicitly call, when managing the connection lifecycle more manually, 
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            throw;
+        }
+    }
+    public async Task<int> UpdateStudentAsync(Student student)
+    {
+        try
+        {
+            using var conn = _context.GetConnection();
+            await conn.OpenAsync();
+
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+
+                using var command = new SqlCommand("UPDATE Students SET FirstName = @FirstName, LastName = @LastName WHERE StudentId = @StudentId", conn, transaction);
+                command.Parameters.AddWithValue("@StudentId", student.StudentId);
+                command.Parameters.AddWithValue("@FirstName", student.FirstName);
+                command.Parameters.AddWithValue("@LastName", student.LastName);
+
+                int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                if (rowsAffected > 0)
+                {
+                    await transaction.CommitAsync();
+                    return rowsAffected;
+                }
+                else
+                {
+                    await transaction.RollbackAsync();
+                    return 0;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+
+                Console.WriteLine($"Error: {ex.Message}");
+                throw; //is used to throw exceptions in general, not just ArgumentNullException
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            throw;
+        }
+    }
+    public async Task<bool> DeleteStudentAsync(int StudentId)
+    {
+        try
+        {
+            using var conn = _context.GetConnection();
+            await conn.OpenAsync(); //before started transaction
+
+            await conn.OpenAsync();
 
             using var transaction = conn.BeginTransaction();
 
@@ -92,27 +195,29 @@ public class StudentRepository : IStudentRepository
 
                 using var deleteEnrollmentsCommand = new SqlCommand("DELETE FROM Enrollments WHERE StudentId = @StudentId", conn, transaction);
                 deleteEnrollmentsCommand.Parameters.AddWithValue("@StudentId", StudentId);
-                deleteEnrollmentsCommand.ExecuteNonQuery();
+
+                await deleteEnrollmentsCommand.ExecuteNonQueryAsync();
 
 
                 using var deleteStudentCommand = new SqlCommand("DELETE FROM Students WHERE StudentId = @StudentId", conn, transaction);
                 deleteStudentCommand.Parameters.AddWithValue("@StudentId", StudentId);
-                int rowsAffected = deleteStudentCommand.ExecuteNonQuery();
+
+                int rowsAffected = await deleteStudentCommand.ExecuteNonQueryAsync();
 
                 if (rowsAffected > 0)
                 {
-                    transaction.Commit(); // if all commands execute successfully   
-                    return true; //deleted
+                    await transaction.CommitAsync(); // if all commands execute successfully   
+                    return true;
                 }
                 else
                 {
-                    transaction.Rollback();
+                    await transaction.RollbackAsync();
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
+                await transaction.RollbackAsync();
                 Console.WriteLine($"Error: {ex.Message}");
                 throw;
             }
@@ -122,9 +227,9 @@ public class StudentRepository : IStudentRepository
             }
 
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-
+            Console.WriteLine($"Error: {ex.Message}");
             throw;
         }
     }

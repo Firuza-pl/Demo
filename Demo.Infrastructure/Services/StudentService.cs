@@ -10,37 +10,40 @@ internal class StudentService : IStudentService
     {
         _studentRepository = studentRepository;
     }
-    public IEnumerable<Student> GetAllStudents()
+    public async Task<IEnumerable<Student>> GetAllStudentsAsync()
     {
-        return _studentRepository.GetAllStudents();
+        return await _studentRepository.GetAllStudentsAsync();
     }
 
-    public Student GetStudent(int id)
+    public async Task<Student> GetStudentAsync(int id)
     {
-        return _studentRepository.GetById(id);
+        return await _studentRepository.GetByIdAsync(id);
     }
-    public void AddStudent(StudentCreatedDTO studentCreated)
+    public async Task<int> AddStudentAsync(StudentCreatedDTO studentCreated)
     {
         if (studentCreated is { })
         {
             Student student = new();
             student.AddData(0, studentCreated.FirstName, studentCreated.LastName);
-            _studentRepository.AddStudent(student);
+           await _studentRepository.AddStudentAsync(student);
         }
+
+        return 0;
     }
-    public void UpdateStudent(int id, StudentUpdateDTO studentUpdate)
+    public async Task<int> UpdateStudentAsync(int id, StudentUpdateDTO studentUpdate)
     {
-        Student existingStudent = _studentRepository.GetById(id);
+        Student existingStudent = await _studentRepository.GetByIdAsync(id);
 
         if (existingStudent is { })
         {
             existingStudent.UpdateData(studentUpdate.FirstName,studentUpdate.LastName);
-            _studentRepository.UpdateStudent(existingStudent);
+           await _studentRepository.UpdateStudentAsync(existingStudent);
         }
+        return 0;
     }
 
-    public async Task<bool> DeleteStudent(int studentId)
+    public async Task<bool> DeleteStudentAsync(int studentId)
     {
-       return await _studentRepository.DeleteStudent(studentId);
+       return await _studentRepository.DeleteStudentAsync(studentId);
     }
 }

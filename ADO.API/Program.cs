@@ -1,13 +1,8 @@
 using ADO.API.MinimalAPI;
-using Demo.Domain.AggregatesModel;
-using Demo.Domain.ViewModels.Students;
+using ADO.API.Validator;
 using Demo.Infrastructure.Database;
 using Demo.Infrastructure.Modules;
-using Demo.Infrastructure.Services;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +16,8 @@ builder.Services.AddControllersWithViews();
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                      .AddEnvironmentVariables();
 
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddValidatorsFromAssemblyContaining<StudentCreatedDTOValidator>();
+
 
 builder.Services.AddSingleton(sp =>
 {
