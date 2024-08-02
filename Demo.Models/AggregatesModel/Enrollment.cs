@@ -6,13 +6,15 @@ public class Enrollment
     public int CourseId { get; private set; }
     public Course Course { get; private set; }
     public DateTime EnrollmentDate { get; private set; }
+    public string Grade { get; set; }
 
-    public Enrollment(int studentId, Student student, int courseId, Course course, DateTime enrollmentDate)
+    public Enrollment(int studentId, Student student, int courseId, Course course, DateTime enrollmentDate, string grade)
     {
         StudentId = studentId;
         Student = student;
         CourseId = courseId;
         Course = course;
         EnrollmentDate = enrollmentDate;
+        Grade = grade;
     }
 }

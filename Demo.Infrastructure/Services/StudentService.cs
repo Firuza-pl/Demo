@@ -24,8 +24,8 @@ internal class StudentService : IStudentService
         if (studentCreated is { })
         {
             Student student = new();
-            student.AddData(0, studentCreated.FirstName, studentCreated.LastName);
-           await _studentRepository.AddStudentAsync(student);
+            student.AddData(0, studentCreated.FirstName, studentCreated.LastName, studentCreated.DateOfBirth, studentCreated.Email, studentCreated.PhoneNumber, true);
+            await _studentRepository.AddStudentAsync(student);
         }
 
         return 0;
@@ -36,14 +36,14 @@ internal class StudentService : IStudentService
 
         if (existingStudent is { })
         {
-            existingStudent.UpdateData(studentUpdate.FirstName,studentUpdate.LastName);
-           await _studentRepository.UpdateStudentAsync(existingStudent);
+            existingStudent.UpdateData(studentUpdate.FirstName, studentUpdate.LastName, studentUpdate.DateOfBirth, studentUpdate.Email, studentUpdate.PhoneNumber, true);
+            await _studentRepository.UpdateStudentAsync(existingStudent);
         }
         return 0;
     }
 
     public async Task<bool> DeleteStudentAsync(int studentId)
     {
-       return await _studentRepository.DeleteStudentAsync(studentId);
+        return await _studentRepository.DeleteStudentAsync(studentId);
     }
 }

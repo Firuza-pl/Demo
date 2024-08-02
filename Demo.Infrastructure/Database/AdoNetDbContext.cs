@@ -15,11 +15,4 @@ public class AdoNetDbContext
         return new SqlConnection(_connectionString);
     }
 
-    public void OpenConnection()
-    {
-        using (var connection = GetConnection())
-        {
-            connection.Open();
-        }
-    }
 }

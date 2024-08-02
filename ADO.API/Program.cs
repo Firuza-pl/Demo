@@ -1,8 +1,11 @@
 using ADO.API.MinimalAPI;
 using ADO.API.Validator;
+using Demo.Domain.Attributes;
 using Demo.Infrastructure.Database;
 using Demo.Infrastructure.Modules;
 using FluentValidation;
+using Microsoft.OpenApi.Models;
+using System.Reflection.Metadata;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,17 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
                      .AddEnvironmentVariables();
 
 builder.Services.AddValidatorsFromAssemblyContaining<StudentCreatedDTOValidator>();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+});
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new CustomDateTimeConverter());
+    });
 
 
 builder.Services.AddSingleton(sp =>

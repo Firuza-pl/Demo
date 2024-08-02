@@ -25,7 +25,7 @@ public static class StudentEndpoints
                 {
                     response.isActive = false;
                     response.StatusCode = HttpStatusCode.NotFound;
-                    response.ErrorMessages.Add("No students found.");
+                    response.ErrorMessages.Add("No students found."); 
                     return Results.NotFound(response);
                 }
 

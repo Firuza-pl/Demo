@@ -1,5 +1,8 @@
 ﻿using Demo.Domain.AggregatesModel;
 using Demo.Infrastructure.Database;
+using System;
+using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 
 namespace Demo.Infrastructure.Repositories;
@@ -17,20 +20,32 @@ public class StudentRepository : IStudentRepository
 
         using var conn = _context.GetConnection();
         await conn.OpenAsync();
+
         try
         {
-            using var command = new SqlCommand("Select * from Students", conn);
+            using var command = new SqlCommand("SELECT * FROM STUDENTS WHERE IsActive = @IsActive", conn);
+            command.Parameters.AddWithValue("@IsActive", true);
 
             using var dataReader = await command.ExecuteReaderAsync();
 
-            while (await dataReader.ReadAsync()) // if there's at least one row
+            if (!dataReader.HasRows) 
             {
-                Student student = new();
+                Console.WriteLine("No active students found.");
+                return students; 
+            }
+
+            while (await dataReader.ReadAsync()) // Process each row
+            {
+                var student = new Student();
 
                 student.AddData(
-                    dataReader.GetInt32(0), // column name 
+                    dataReader.GetInt32(0), // Assuming column index matches the property order
                     dataReader.GetString(1),
-                    dataReader.GetString(2)
+                    dataReader.GetString(2),
+                    dataReader.GetDateTime(3),
+                    dataReader.GetString(4),
+                    dataReader.GetString(5),
+                    dataReader.GetBoolean(6)
                 );
 
                 students.Add(student);
@@ -53,21 +68,32 @@ public class StudentRepository : IStudentRepository
             await conn.OpenAsync();
 
             // No need for a transaction for read operations
-            using var command = new SqlCommand("SELECT * FROM Students WHERE StudentId = @StudentId", conn);
+            using var command = new SqlCommand("SELECT * FROM Students WHERE StudentId = @StudentId AND IsActive = @IsActive", conn);
             command.Parameters.AddWithValue("@StudentId", studentId);
+            command.Parameters.AddWithValue("@IsActive", true);
 
             using var dataReader = await command.ExecuteReaderAsync();
+
+            if (!dataReader.HasRows)
+            {
+                Console.WriteLine("No active student found with the provided ID.");
+                return null; 
+            }
 
             Student student = null;
 
             if (await dataReader.ReadAsync()) // if there's at least one row
             {
                 student = new Student();
-                student.AddData(
-                    dataReader.GetInt32(0), // column name 
-                    dataReader.GetString(1),
-                    dataReader.GetString(2)
-                );
+                    student.AddData(
+                        dataReader.GetInt32(0), // column
+                        dataReader.GetString(1),
+                        dataReader.GetString(2),
+                        dataReader.GetDateTime(3),
+                        dataReader.GetString(4),
+                        dataReader.GetString(5),
+                        dataReader.GetBoolean(6)
+                    );
             }
 
             return student;
@@ -77,10 +103,7 @@ public class StudentRepository : IStudentRepository
             Console.WriteLine($"Error: {ex.Message}");
             throw;
         }
-        finally
-        {
-            // No need to manually close the connection , it's handled by using statement
-        }
+        // No need to manually close the connection , it's handled by using statement
     }
     public async Task<int> AddStudentAsync(Student student)
     {
@@ -94,9 +117,13 @@ public class StudentRepository : IStudentRepository
             try
             {
 
-                using var command = new SqlCommand("INSERT INTO Students (FirstName, LastName) VALUES (@FirstName, @LastName)", conn, transaction);
+                using var command = new SqlCommand("INSERT INTO Students (FirstName, LastName, DateOfBirth, Email, PhoneNumber, IsActive) VALUES (@FirstName, @LastName, @DateOfBirth, @Email, @PhoneNumber, @IsActive)", conn, transaction);
                 command.Parameters.AddWithValue("@FirstName", student.FirstName);
                 command.Parameters.AddWithValue("@LastName", student.LastName);
+                command.Parameters.AddWithValue("@DateOfBirth", student.DateOfBirth);
+                command.Parameters.AddWithValue("@Email", student.Email);
+                command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
+                command.Parameters.AddWithValue("@IsActive", true);
 
                 int rowsAffected = await command.ExecuteNonQueryAsync();
 
@@ -142,10 +169,14 @@ public class StudentRepository : IStudentRepository
             try
             {
 
-                using var command = new SqlCommand("UPDATE Students SET FirstName = @FirstName, LastName = @LastName WHERE StudentId = @StudentId", conn, transaction);
+                using var command = new SqlCommand("UPDATE Students SET FirstName = @FirstName, LastName = @LastName WHERE StudentId = @StudentId and IsActive = @IsActive", conn, transaction);
                 command.Parameters.AddWithValue("@StudentId", student.StudentId);
                 command.Parameters.AddWithValue("@FirstName", student.FirstName);
                 command.Parameters.AddWithValue("@LastName", student.LastName);
+                command.Parameters.AddWithValue("@DateOfBirth", student.DateOfBirth);
+                command.Parameters.AddWithValue("@Email", student.Email);
+                command.Parameters.AddWithValue("@PhoneNumber", student.PhoneNumber);
+                command.Parameters.AddWithValue("@IsActive", true);
 
                 int rowsAffected = await command.ExecuteNonQueryAsync();
 
@@ -186,21 +217,14 @@ public class StudentRepository : IStudentRepository
             using var conn = _context.GetConnection();
             await conn.OpenAsync(); //before started transaction
 
-            await conn.OpenAsync();
-
             using var transaction = conn.BeginTransaction();
 
             try
             {
 
-                using var deleteEnrollmentsCommand = new SqlCommand("DELETE FROM Enrollments WHERE StudentId = @StudentId", conn, transaction);
-                deleteEnrollmentsCommand.Parameters.AddWithValue("@StudentId", StudentId);
-
-                await deleteEnrollmentsCommand.ExecuteNonQueryAsync();
-
-
-                using var deleteStudentCommand = new SqlCommand("DELETE FROM Students WHERE StudentId = @StudentId", conn, transaction);
+                using var deleteStudentCommand = new SqlCommand("UPDATE Students SET IsActive = @IsActive WHERE StudentId = @StudentId", conn, transaction);
                 deleteStudentCommand.Parameters.AddWithValue("@StudentId", StudentId);
+                deleteStudentCommand.Parameters.AddWithValue("@IsActive", false);  //instead of deleting data we change status
 
                 int rowsAffected = await deleteStudentCommand.ExecuteNonQueryAsync();
 
@@ -233,6 +257,5 @@ public class StudentRepository : IStudentRepository
             throw;
         }
     }
-
 
 }
