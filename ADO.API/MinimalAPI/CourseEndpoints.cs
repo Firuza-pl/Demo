@@ -2,11 +2,12 @@
 using Demo.Infrastructure.Services;
 using Demo.Domain.ViewModels.Courses;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc; 
 using System.Net;
 
 namespace ADO.API.MinimalAPI
 {
+    //Controllers
     public static class CourseEndpoints
     {
         public static void MapCourseEndpoints(this IEndpointRouteBuilder app)
