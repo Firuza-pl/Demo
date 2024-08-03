@@ -17,4 +17,21 @@ public class Enrollment
         EnrollmentDate = enrollmentDate;
         Grade = grade;
     }
+
+    public void AddData(int studentId, int courseId, DateTime enrollmentDate, string grade)
+    {
+        StudentId = studentId;
+        CourseId = courseId;
+        EnrollmentDate=enrollmentDate;
+        Grade = grade;
+
+    }
+
+    public void UpdateData(int studentId, int courseId, DateTime enrollmentDate, string grade) {
+
+        StudentId = studentId;
+        CourseId = courseId;
+        EnrollmentDate = enrollmentDate;
+        Grade = grade;
+    }
 }

@@ -90,7 +90,7 @@ namespace ADO.API.MinimalAPI
                     return Results.StatusCode((int)HttpStatusCode.InternalServerError);
                 }
             }).WithName("GetSingleCourse")
-    .Produces<ApiResponse>(201)
+    .Produces<ApiResponse>(201) 
     .Produces<ApiResponse>(404)
     .Produces<ApiResponse>(500)
     .WithTags("Course");
