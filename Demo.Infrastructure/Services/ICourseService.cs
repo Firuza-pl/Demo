@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Demo.Infrastructure.Services
+﻿using Demo.Domain.AggregatesModel;
+using Demo.Domain.ViewModels.Courses;
+namespace Demo.Infrastructure.Services;
+public interface ICourseService
 {
-    internal class ICourseService
-    {
-    }
+    Task<IEnumerable<Course>> GetAllCoursesAsync();
+    Task<Course> GetCourseAsync(int? id);
+    Task<int> AddCourseAsync(CourseCreatedDTO studentCreated);
+    Task<int> UpdateCourseAsync(int studentId, CourseUpdateDTO studentUpdate);
+    Task<bool> DeleteCourseAsync(int studentId);
 }

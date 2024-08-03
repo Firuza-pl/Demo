@@ -8,8 +8,11 @@ public class LogicModule
     public static void Load(IServiceCollection services)
     {
         services.AddScoped<IStudentService, StudentService>();
+        services.AddScoped<ICourseService, CourseService>();
 
         //repos
         services.AddScoped<IStudentRepository, StudentRepository>();
+        services.AddScoped<ICourseRepository, CourseRepository>();
+
     }
 }

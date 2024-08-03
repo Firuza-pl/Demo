@@ -25,7 +25,7 @@ public static class StudentEndpoints
                 {
                     response.isActive = false;
                     response.StatusCode = HttpStatusCode.NotFound;
-                    response.ErrorMessages.Add("No students found."); 
+                    response.ErrorMessages.Add("No students found.");
                     return Results.NotFound(response);
                 }
 
@@ -46,8 +46,10 @@ public static class StudentEndpoints
                 return Results.StatusCode((int)HttpStatusCode.InternalServerError);
             }
         }).WithName("GetStudents")
-          .Produces<ApiResponse>(200)
-          .Produces(400);
+  .Produces<ApiResponse>(201)
+ .Produces<ApiResponse>(404)
+ .Produces<ApiResponse>(500)
+ .WithTags("Student");
 
         //GET ID
 
@@ -85,12 +87,14 @@ public static class StudentEndpoints
                 return Results.StatusCode((int)HttpStatusCode.InternalServerError);
             }
         }).WithName("GetSingeStudent")
-        .Produces<ApiResponse>(200)
-        .Produces(400);
+ .Produces<ApiResponse>(201)
+ .Produces<ApiResponse>(404)
+ .Produces<ApiResponse>(500)
+ .WithTags("Student");
 
 
         //Create
-        app.MapPost("/api/createStudent/", async (IStudentService studentService, ILogger<Program> logger, StudentCreatedDTO createdDTO, IValidator<StudentCreatedDTO> validator) =>
+        app.MapPost("/api/createStudent/", async (IStudentService studentService, ILogger<Program> logger, [FromBody] StudentCreatedDTO createdDTO, IValidator<StudentCreatedDTO> validator) =>
         {
 
             logger.Log(LogLevel.Information, "All students");
@@ -127,9 +131,10 @@ public static class StudentEndpoints
             }
 
         }).WithName("CreateStudent")
-         .Produces<ApiResponse>(201)
-         .Produces(400);
-
+.Produces<ApiResponse>(201)
+ .Produces<ApiResponse>(404)
+ .Produces<ApiResponse>(500)
+ .WithTags("Student");
 
         //update
         app.MapPut("/api/updateStudent/", async (IStudentService studentService, ILogger<Program> logger, [FromBody] StudentUpdateDTO updateDTO, IValidator<StudentUpdateDTO> validator) =>
@@ -167,8 +172,10 @@ public static class StudentEndpoints
             }
 
         }).WithName("UpdateStudent")
-       .Produces<ApiResponse>(200)
-       .Produces(400);
+  .Produces<ApiResponse>(201)
+ .Produces<ApiResponse>(404)
+ .Produces<ApiResponse>(500)
+ .WithTags("Student");
 
         //delete
         app.MapDelete("/api/deleteStudent/{id:int}", async (IStudentService studentService, ILogger<Program> logger, int id) =>
@@ -209,10 +216,10 @@ public static class StudentEndpoints
                 return Results.StatusCode((int)HttpStatusCode.InternalServerError);
             }
         }).WithName("DeleteStudent")
- .Produces<ApiResponse>(200)
+ .Produces<ApiResponse>(201)
  .Produces<ApiResponse>(404)
- .Produces<ApiResponse>(500);
-
+ .Produces<ApiResponse>(500)
+ .WithTags("Student");
 
     }
 

@@ -5,7 +5,6 @@ namespace Demo.Infrastructure.Services;
 internal class StudentService : IStudentService
 {
     private readonly IStudentRepository _studentRepository;
-
     public StudentService(IStudentRepository studentRepository)
     {
         _studentRepository = studentRepository;
@@ -14,7 +13,6 @@ internal class StudentService : IStudentService
     {
         return await _studentRepository.GetAllStudentsAsync();
     }
-
     public async Task<Student> GetStudentAsync(int id)
     {
         return await _studentRepository.GetByIdAsync(id);
@@ -41,7 +39,6 @@ internal class StudentService : IStudentService
         }
         return 0;
     }
-
     public async Task<bool> DeleteStudentAsync(int studentId)
     {
         return await _studentRepository.DeleteStudentAsync(studentId);

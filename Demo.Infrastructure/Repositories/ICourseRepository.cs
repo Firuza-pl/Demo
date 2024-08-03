@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Demo.Infrastructure.Repositories
+﻿using Demo.Domain.AggregatesModel;
+namespace Demo.Infrastructure.Repositories;
+public interface ICourseRepository
 {
-    internal class ICourseRepository
-    {
-    }
+    Task<IEnumerable<Course>> GetAllCoursesAsync();
+    Task<Course> GetByIdAsync(int id);
+    Task<int> AddCoursesAsync(Course student);
+    Task<int> UpdateCoursesAsync(Course student);
+    Task<bool> DeleteCoursesAsync(int id);
 }
