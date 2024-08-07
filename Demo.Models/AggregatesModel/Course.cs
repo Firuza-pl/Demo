@@ -2,6 +2,8 @@
 public class Course
 {
     public int CourseId { get; private set; }
+
+    //[Required(ErrorMessage = "Name is required")]
     public string CourseName { get; private set; }
     public int Credits { get; private set; }
     public bool IsActive { get; private set; }

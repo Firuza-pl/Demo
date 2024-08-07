@@ -20,19 +20,13 @@ builder.Services.AddControllersWithViews();
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                      .AddEnvironmentVariables();
 
+
 builder.Services.AddValidators();  //from static ValidatorConfigurationClass
 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
 });
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new CustomDateTimeConverter());
-    });
-
 
 builder.Services.AddSingleton(sp =>
 {

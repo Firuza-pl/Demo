@@ -1,6 +1,5 @@
 ﻿using Demo.Domain.ViewModels.Students;
 using FluentValidation;
-
 namespace ADO.API.Validator;
 public class StudentUpdateDTOValidator : AbstractValidator<StudentUpdateDTO>
 {
@@ -9,6 +8,8 @@ public class StudentUpdateDTOValidator : AbstractValidator<StudentUpdateDTO>
         RuleFor(x => x.StudentId).NotEmpty().WithMessage("Id is required.");
         RuleFor(x => x.FirstName).NotEmpty().WithMessage("First name is required.");
         RuleFor(x => x.LastName).NotEmpty().WithMessage("Last name is required.");
-        // Add additional validation rules as needed
+        RuleFor(x => x.Email).EmailAddress().WithMessage("Provide valid Email address");
     }
+
 }
+
