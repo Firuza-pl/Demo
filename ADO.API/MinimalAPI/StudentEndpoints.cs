@@ -37,7 +37,7 @@ public static class StudentEndpoints
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while getting the students");
+                logger.LogError(ex.Message);
 
                 response.isActive = false;
                 response.StatusCode = HttpStatusCode.InternalServerError;
@@ -78,7 +78,7 @@ public static class StudentEndpoints
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while getting the student by id");
+                logger.LogError(ex.Message);
 
                 response.isActive = false;
                 response.StatusCode = HttpStatusCode.InternalServerError;
@@ -123,6 +123,7 @@ public static class StudentEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex.Message);
                 response.isActive = false;
                 response.StatusCode = HttpStatusCode.InternalServerError;
                 response.ErrorMessages.Add("An error occurred while processing your request");
@@ -162,7 +163,7 @@ public static class StudentEndpoints
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while updating the student");
+                logger.LogError(ex.Message);
 
                 response.isActive = false;
                 response.StatusCode = HttpStatusCode.InternalServerError;
@@ -207,7 +208,7 @@ public static class StudentEndpoints
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while deleting the student");
+                logger.LogError(ex.Message);
 
                 response.isActive = false;
                 response.StatusCode = HttpStatusCode.InternalServerError;
