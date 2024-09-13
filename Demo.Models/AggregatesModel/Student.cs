@@ -6,8 +6,6 @@ public class Student
     public int StudentId { get; private set; }
     public string? FirstName { get; private set; }
     public string? LastName { get; private set; }
-
-    [JsonConverter(typeof(CustomDateTimeConverter))]
     public DateTime DateOfBirth { get; set; }
 
     [EmailFormat]

@@ -1,11 +1,10 @@
 using ADO.API.MinimalAPI;
 using ADO.API.Validator;
-using ADO.API.Validator.Course;
 using Demo.Domain.Attributes;
 using Demo.Infrastructure.Database;
 using Demo.Infrastructure.Modules;
-using FluentValidation;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 

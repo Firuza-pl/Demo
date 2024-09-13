@@ -88,10 +88,9 @@ public static class StudentEndpoints
             }
         }).WithName("GetSingeStudent")
  .Produces<ApiResponse>(201)
- .Produces<ApiResponse>(404)
+ .Produces<ApiResponse>(404)    
  .Produces<ApiResponse>(500)
  .WithTags("Student");
-
 
         //Create
         app.MapPost("/api/createStudent/", async (IStudentService studentService, ILogger<Program> logger, [FromBody] StudentCreatedDTO createdDTO, IValidator<StudentCreatedDTO> validator) =>
@@ -223,8 +222,6 @@ public static class StudentEndpoints
  .WithTags("Student");
 
     }
-
-
 
 
 }

@@ -54,7 +54,7 @@ namespace ADO.API.MinimalAPI
 
             //GET ID
 
-            app.MapGet("/api/getCourseById/{id:int}", async (ICourseService courseService, ILogger<Program> logger, int? id) =>
+            app.MapGet("/api/getCourseById/{id:int}", async (ICourseService courseService, ILogger<Program> logger, int id) =>
             {
                 ApiResponse response = new();
 
@@ -62,7 +62,7 @@ namespace ADO.API.MinimalAPI
                 {
                     logger.Log(LogLevel.Information, "Getting single course");
 
-                    if (id is null) { Console.WriteLine("Id must be defined"); }
+                    if (id is 0) { Console.WriteLine("Id must be defined"); }
 
                     var course = await courseService.GetCourseAsync(id);
 

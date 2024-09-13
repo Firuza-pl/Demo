@@ -28,12 +28,13 @@ public class StudentRepository : IStudentRepository
 
             using var dataReader = await command.ExecuteReaderAsync();
 
-            if (!dataReader.HasRows) 
+            if (!dataReader.HasRows)
             {
                 Console.WriteLine("No active students found.");
-                return students; 
+                return students;
             }
 
+           
             while (await dataReader.ReadAsync()) // Process each row
             {
                 var student = new Student();
@@ -52,6 +53,26 @@ public class StudentRepository : IStudentRepository
             }
 
             return students;
+
+            #region ds
+            // using var dataAdapter = new SqlDataAdapter(command);
+            //DataSet ds = new DataSet();
+            //dataAdapter.Fill(ds);
+            //DataTable dt = ds.Tables["Students"];
+            //var student = new Student();
+            //foreach (DataRow row in dt.Rows)
+            //{
+            //    student.AddData(
+            //      Convert.ToInt32(row["StudentId"]),
+            //      row["FirstName"].ToString(),
+            //      row["LastName"].ToString(),
+            //      Convert.ToDateTime(row["DateOfBirth"]),
+            //      row["Email"].ToString(),
+            //      row["PhoneNumber"].ToString(),
+            //      Convert.ToBoolean(row["IsActive"])
+            //        );
+            //}
+            #endregion
         }
         catch (Exception ex)
         {
@@ -77,7 +98,7 @@ public class StudentRepository : IStudentRepository
             if (!dataReader.HasRows)
             {
                 Console.WriteLine("No active student found with the provided ID.");
-                return null; 
+                return null;
             }
 
             Student student = null;
@@ -85,15 +106,15 @@ public class StudentRepository : IStudentRepository
             if (await dataReader.ReadAsync()) // if there's at least one row
             {
                 student = new Student();
-                    student.AddData(
-                        dataReader.GetInt32(0), // column
-                        dataReader.GetString(1),
-                        dataReader.GetString(2),
-                        dataReader.GetDateTime(3),
-                        dataReader.GetString(4),
-                        dataReader.GetString(5),
-                        dataReader.GetBoolean(6)
-                    );
+                student.AddData(
+                    dataReader.GetInt32(0), // column
+                    dataReader.GetString(1),
+                    dataReader.GetString(2),
+                    dataReader.GetDateTime(3),
+                    dataReader.GetString(4),
+                    dataReader.GetString(5),
+                    dataReader.GetBoolean(6)
+                );
             }
 
             return student;
